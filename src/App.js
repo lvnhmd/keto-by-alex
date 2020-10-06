@@ -6,7 +6,7 @@ import Recipe from './Recipe.js';
 import RecipeComponent from './RecipeComponent.js';
 import axios from 'axios';
 
-const domain = 'http://8559a69bad94.ngrok.io';
+const domain = 'http://0be30ff24ef0.ngrok.io';
 
 class App extends React.Component {
   state = { recipes: [], allComponents:[] };
@@ -31,12 +31,9 @@ class App extends React.Component {
 
   getComponents = async () => {
     const response = await axios.get(`${domain}/components`);
-    // console.log('-------------COMPONENTS-------------');
-    // console.log(JSON.stringify(response.data.components));
+    console.log('-------------COMPONENTS-------------');
+    console.log(JSON.stringify(response.data.components));
     this.setState({ allComponents: response.data.components });
-    // console.log('-------------STATE-------------');
-    // console.log(JSON.stringify(this.state));
-
   };
 
   render() {
@@ -50,7 +47,9 @@ class App extends React.Component {
         ingredients={r.ingredients}
         nutrition={r.nutrition}
         price={r.price}
-        amount={r.amount}
+        weight={r.weight}
+        cost={r.cost}
+        type={r.type}
         allIngredients={this.state.allIngredients}
       />
     ));
@@ -64,7 +63,7 @@ class App extends React.Component {
         avatar={c.avatar}
         ingredients={c.ingredients}
         nutrition={c.nutrition}
-        amount={c.amount}
+        weight={c.weight}
         allIngredients={this.state.allIngredients}
       />
     ));

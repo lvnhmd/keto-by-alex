@@ -1,47 +1,78 @@
 import React, { Component } from 'react';
 import { RIEInput, RIESelect } from 'riek';
+import { find, propEq } from 'ramda';
 
 class ComponentIngredient extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      compIngId: props.compIngId,
+      // _id: props._id,
+      // name: props.name,
       amount: props.amount,
       energy: props.energy,
       fat: props.fat,
       carbs: props.carbs,
       protein: props.protein,
       price: props.price,
+      packageSize: props.packageSize,
+      serving: props.serving,
+      category: props.category,
       select: { id: props._id, text: props.name },
     };
   }
 
   getCategoryOptions = () =>
-    this.props.allIngredients[this.props.category].map((i) => ({
+    this.props.allIngredients[this.state.category].map((i) => ({
       id: i._id,
       text: i.name,
     }));
 
   calculatePriceForAmount = () => {
-    const { price, amount } = this.state;
-    const { packageSize } = this.props;
+    const { price, amount, packageSize } = this.state;
     const pfa = (price / packageSize) * amount;
     return pfa ? Number(pfa).toFixed(2) : 0;
   };
 
-  calculateMicroForAmount = (micro) =>
-    Number(
-      (this.state[micro] / this.props.serving) * this.state.amount
-    ).toFixed(2);
+  calculateMacro = (macro) => {
+    return this.state[macro] > 0 ? Number(
+      (this.state[macro] / this.state.serving) * this.state.amount
+    ).toFixed(2) : 0;
 
-  setStateOnIngredientChange = (newState) => {
-    // this.setState(newState);
-    console.log('setStateOnIngredientChange');
+  }
+
+  setStateOnIngredientChange = (patch) => {
+    const { energy, fat, carbs, protein, price, packageSize, serving } = find(
+      propEq('_id', patch.select.id)
+    )(Object.values(this.props.allIngredients).flat());
+
+    const update = {
+      ...this.state,
+      energy,
+      fat,
+      carbs,
+      protein,
+      price,
+      packageSize,
+      serving,
+      select: patch.select,
+    };
+
+    this.setState(update);
+    this.props.onChange(update);
   };
 
-  setStateOnAmountChange = (newState) => {
-    // this.setState(newState);
-    console.log('setStateOnAmountChange');
+  setStateOnAmountChange = (patch) => {
+    console.log(patch);
+
+    const update = {
+      ...this.state,
+      amount: patch.amount,
+    };
+
+    this.setState(update);
+    this.props.onChange(update);
   };
 
   render() {
@@ -57,10 +88,10 @@ class ComponentIngredient extends Component {
             propName="select"
           />
         </td>
-        <td>{this.calculateMicroForAmount('carbs')}</td>
-        <td>{this.calculateMicroForAmount('energy')}</td>
-        <td>{this.calculateMicroForAmount('fat')}</td>
-        <td>{this.calculateMicroForAmount('protein')}</td>
+        <td>{this.calculateMacro('carbs')}</td>
+        <td>{this.calculateMacro('energy')}</td>
+        <td>{this.calculateMacro('fat')}</td>
+        <td>{this.calculateMacro('protein')}</td>
         <td>
           <RIEInput
             value={this.state.amount}
@@ -69,7 +100,7 @@ class ComponentIngredient extends Component {
             className="form-control"
           />
         </td>
-        <td>{this.calculateIngredientPriceForAmount()}</td>
+        <td>{this.calculatePriceForAmount()}</td>
         <td>
           {/* <button
             type="button"

@@ -9,7 +9,7 @@ import {
   RIETags,
   RIESelect,
 } from 'riek';
-
+import ComponentIngredient from './ComponentIngredient.js';
 // https://www.blog.duomly.com/bootstrap-tutorial/#1-creating-a-starter-template
 const alter = curry((updateIngNutrition, ingId, items) =>
   map(when(propEq('_id', ingId), assoc('nutrition', updateIngNutrition)), items)
@@ -28,21 +28,37 @@ class Recipe extends React.Component {
       rec_protein: props.nutrition.protein,
       rec_price: props.price,
       rec_amount: props.amount,
+      cost: Number(props.cost).toFixed(2),
+      type: props.type,
+      ingredients: props.ingredients.map((ing) => ({
+        recIngId: ing._id,
+        amount: ing.amount,
+        energy: ing.ingredient.energy,
+        fat: ing.ingredient.fat,
+        carbs: ing.ingredient.carbs,
+        protein: ing.ingredient.protein,
+        _id: ing.ingredient._id,
+        name: ing.ingredient.name,
+        price: ing.ingredient.price,
+        packageSize: ing.ingredient.packageSize,
+        serving: ing.ingredient.serving,
+        category: ing.ingredient.category,
+      })),
     };
 
-    for (let i = 0; i < this.props.ingredients.length; i++) {
-      const ing = this.props.ingredients[i];
-      this.state[`ing_amount_${ing._id}`] = ing.amount;
-      this.state[`ing_carbs_${ing._id}`] = ing.nutrition.carbs;
-      this.state[`ing_energy_${ing._id}`] = ing.nutrition.energy;
-      this.state[`ing_fat_${ing._id}`] = ing.nutrition.fat;
-      this.state[`ing_protein_${ing._id}`] = ing.nutrition.protein;
-      this.state[`ing_price_${ing._id}`] = ing.price;
-    //   this.state[`ing_select_${ing._id}`] = {
-    //     id: ing.ingredient._id,
-    //     text: ing.ingredient.name,
-    //   };
-    }
+    // for (let i = 0; i < this.props.ingredients.length; i++) {
+    //   const ing = this.props.ingredients[i];
+    //   this.state[`ing_amount_${ing._id}`] = ing.amount;
+    //   this.state[`ing_carbs_${ing._id}`] = ing.nutrition.carbs;
+    //   this.state[`ing_energy_${ing._id}`] = ing.nutrition.energy;
+    //   this.state[`ing_fat_${ing._id}`] = ing.nutrition.fat;
+    //   this.state[`ing_protein_${ing._id}`] = ing.nutrition.protein;
+    //   this.state[`ing_price_${ing._id}`] = ing.price;
+    // //   this.state[`ing_select_${ing._id}`] = {
+    // //     id: ing.ingredient._id,
+    // //     text: ing.ingredient.name,
+    // //   };
+    // }
   }
 
   calculateRecipeNutritionForIngredientAmount(ingId, updateIngNutrition) {
@@ -151,59 +167,48 @@ class Recipe extends React.Component {
     this.setState(update);
   };
 
+  eventhandler = (data) => {
+    console.log('hello');
+  };
+
   renderIngredients = () => {
-    let ings = [];
-    ings = this.props.ingredients.map((ing) => {
+    const ings = this.state.ingredients.map((ing) => {
       return (
-        <tr key={ing._id} className="table-warning">
-          <th scope="row">{ing.ingredient.name}
-            {/* <RIESelect
-              value={this.state[`ing_select_${ing._id}`]} //[`ing_select_${ing._id}`]
-              //   className={this.state.highlight ? "editable" : ""}
-              className="form-control"
-              options={this.props.allIngredients[
-                ing.ingredient.category
-              ].map((i) => ({ id: i._id, text: i.name }))}
-              change={this.changeState}
-              classLoading="loading"
-              propName={`ing_select_${ing._id}`}
-              //   isDisabled={this.state.isDisabled}
-            /> */}
-          </th>
-          <td>{Number(this.state[`ing_carbs_${ing._id}`]).toFixed(2)}</td>
-          <td>{Number(this.state[`ing_energy_${ing._id}`]).toFixed(2)}</td>
-          <td>{Number(this.state[`ing_fat_${ing._id}`]).toFixed(2)}</td>
-          <td>{Number(this.state[`ing_protein_${ing._id}`]).toFixed(2)}</td>
-          <td>
-            <RIEInput
-              value={this.state[`ing_amount_${ing._id}`]}
-              change={this.changeState}
-              propName={`ing_amount_${ing._id}`}
-              //   className={this.state.highlight ? 'editable' : ''}
-              className="form-control"
-              classLoading="loading"
-              classInvalid="invalid"
-              //   isDisabled={this.state.isDisabled}
-            />
-          </td>
-          <td>{this.state[`ing_price_${ing._id}`]}</td>
-        </tr>
+        <ComponentIngredient
+          recIngId={ing.recIngId}
+          _id={ing._id}
+          name={ing.name}
+          amount={ing.amount}
+          energy={ing.energy}
+          fat={ing.fat}
+          carbs={ing.carbs}
+          protein={ing.protein}
+          price={ing.price}
+          packageSize={ing.packageSize}
+          serving={ing.serving}
+          category={ing.category}
+          allIngredients={this.props.allIngredients}
+          onChange={this.eventhandler}
+        />
       );
     });
     return ings;
   };
-
   renderComponents = () => {
     let comps = [];
     comps = this.props.components.map((comp) => (
       <tr key={comp._id} className="table-success">
-        <th scope="row"><a href={`#${comp._id}`} className="">{comp.name}</a></th>
+        <th scope="row">
+          <a href={`#${comp._id}`} className="">
+            {comp.name}
+          </a>
+        </th>
         <td>{Number(comp.nutrition.carbs).toFixed(2)}</td>
         <td>{Number(comp.nutrition.energy).toFixed(2)}</td>
         <td>{Number(comp.nutrition.fat).toFixed(2)}</td>
         <td>{Number(comp.nutrition.protein).toFixed(2)}</td>
         <td></td>
-        <td>{comp.price}</td>
+        <td>{comp.cost}</td>
       </tr>
     ));
     return comps;
@@ -216,6 +221,7 @@ class Recipe extends React.Component {
             <div className="row">
               <div className="col-xl-3">
                 <h5 className="card-title">{this.props.name}</h5>
+                <p>£{this.state.rec_price}</p>
                 <a href="#" className="thumbnail">
                   <img
                     src={this.props.avatar}
@@ -245,12 +251,16 @@ class Recipe extends React.Component {
                       <td>{this.state.rec_protein}</td>
                     </tr>
                     <tr>
-                      <th scope="row">amount (g)</th>
-                      <td>{this.state.rec_amount}</td>
+                      <th scope="row">weight (g)</th>
+                      <td>
+                        {this.props.type === 'pizza' && this.props.weight &&
+                          `${this.props.weight.raw} / ${this.props.weight.cooked}`}
+                        {this.props.type === 'salad' && this.props.weight}
+                      </td>
                     </tr>
                     <tr>
-                      <th scope="row">price (£)</th>
-                      <td>{this.state.rec_price}</td>
+                      <th scope="row">cost (£)</th>
+                      <td>{this.state.cost}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -270,7 +280,7 @@ class Recipe extends React.Component {
                 />
               </div>
             </div>
-            
+
             <div className="mt-4 row">
               <div className="col-xl-12">
                 <table className="table table-sm">
